@@ -1,8 +1,8 @@
 class rbnode(object):
     """
-    A node in a red black tree. See Cormen, Leiserson, Rivest, Stein 2nd edition pg 273.
+    A node in a red black tree.
     """
-    
+
     def __init__(self, key):
         "Construct."
         self._key = key
@@ -10,22 +10,22 @@ class rbnode(object):
         self._left = None
         self._right = None
         self._p = None
-    
+
     key = property(fget=lambda self: self._key, doc="The node's key")
     red = property(fget=lambda self: self._red, doc="Is the node red?")
     left = property(fget=lambda self: self._left, doc="The node's left child")
     right = property(fget=lambda self: self._right, doc="The node's right child")
     p = property(fget=lambda self: self._p, doc="The node's parent")
-    
+
     def __str__(self):
         "String representation."
         return str(self.key)
-    
+
 
     def __repr__(self):
         "String representation."
         return str(self.key)
-    
+
 
 
 
@@ -36,31 +36,31 @@ class rbnode(object):
 
 class rbtree(object):
     """
-    A red black tree. See Cormen, Leiserson, Rivest, Stein 2nd edition pg 273.
+    A red black tree.
     """
-    
-    
+
+
     def __init__(self, create_node=rbnode):
         "Construct."
-        
+
         self._nil = create_node(key=None)
         "Our nil node, used for all leaves."
-        
+
         self._root = self.nil
         "The root of the tree."
-        
+
         self._create_node = create_node
         "A callable that creates a node."
 
 
     root = property(fget=lambda self: self._root, doc="The tree's root node")
     nil = property(fget=lambda self: self._nil, doc="The tree's nil node")
-    
-    
+
+
     def search(self, key, x=None):
         """
         Search the subtree rooted at x (or the root if not given) iteratively for the key.
-        
+
         @return: self.nil if it cannot find it.
         """
         if None == x:
@@ -72,7 +72,7 @@ class rbtree(object):
                 x = x.right
         return x
 
-    
+
     def minimum(self, x=None):
         """
         @return: The minimum value in the subtree rooted at x.
@@ -83,7 +83,7 @@ class rbtree(object):
             x = x.left
         return x
 
-    
+
     def maximum(self, x=None):
         """
         @return: The maximum value in the subtree rooted at x.
@@ -94,12 +94,12 @@ class rbtree(object):
             x = x.right
         return x
 
-    
+
     def insert_key(self, key):
         "Insert the key into the tree."
         self.insert_node(self._create_node(key=key))
-    
-    
+
+
     def insert_node(self, z):
         "Insert node z into the tree."
         y = self.nil
@@ -121,8 +121,8 @@ class rbtree(object):
         z._right = self.nil
         z._red = True
         self._insert_fixup(z)
-        
-        
+
+
     def _insert_fixup(self, z):
         "Restore red-black properties after insert."
         while z.p.red:
@@ -156,7 +156,7 @@ class rbtree(object):
                     self._left_rotate(z.p.p)
         self.root._red = False
 
-    
+
     def _left_rotate(self, x):
         "Left rotate x."
         y = x.right
@@ -193,7 +193,7 @@ class rbtree(object):
 
     def check_invariants(self):
         "@return: True iff satisfies all criteria to be red-black tree."
-        
+
         def is_red_black_node(node):
             "@return: num_black"
             # check has _left and _right or neither
@@ -208,10 +208,10 @@ class rbtree(object):
             if node.red and node.left and node.right:
                 if node.left.red or node.right.red:
                     return 0, False
-                    
+
             # descend tree and check black counts are balanced
             if node.left and node.right:
-                
+
                 # check children's parents are correct
                 if self.nil != node.left and node != node.left.p:
                     return 0, False
@@ -232,10 +232,10 @@ class rbtree(object):
                 return left_counts, True
             else:
                 return 0, True
-                
+
         num_black, is_ok = is_red_black_node(self.root)
         return is_ok and not self.root._red
-                
+
 
 
 
@@ -243,13 +243,13 @@ def write_tree_as_dot(t, f, show_nil=False):
     "Write the tree in the dot language format to f."
     def node_id(node):
         return 'N%d' % id(node)
-    
+
     def node_color(node):
         if node.red:
             return "red"
         else:
             return "black"
-    
+
     def visit_node(node):
         "Visit a node."
         print >> f, "  %s [label=\"%s\", color=\"%s\"];" % (node_id(node), node, node_color(node))
@@ -261,7 +261,7 @@ def write_tree_as_dot(t, f, show_nil=False):
             if node.right != t.nil or show_nil:
                 visit_node(node.right)
                 print >> f, "  %s -> %s ;" % (node_id(node), node_id(node.right))
-             
+
     print >> f, "// Created by rbtree.write_dot()"
     print >> f, "digraph red_black_tree {"
     visit_node(t.root)
@@ -270,32 +270,35 @@ def write_tree_as_dot(t, f, show_nil=False):
 
 
 
-def test_tree(t, keys):
+def test_tree(t, key):
     "Insert keys one by one checking invariants and membership as we go."
     assert t.check_invariants()
-    for i, key in enumerate(keys):
-        for key2 in keys[:i]:
-            assert t.nil != t.search(key2)
-        for key2 in keys[i:]:
-            assert (t.nil == t.search(key2)) ^ (key2 in keys[:i])
-        t.insert_key(key)
-        assert t.check_invariants()
-    
+    #for i, key in enumerate(keys):
+    #    for key2 in keys[:i]:
+    #        assert t.nil != t.search(key2)
+    #    for key2 in keys[i:]:
+    #        assert (t.nil == t.search(key2)) ^ (key2 in keys[:i])
+    #    t.insert_key(key)
+    t.insert_key(key)
+    assert t.check_invariants()
+
 
 if '__main__' == __name__:
-    import os, sys, numpy.random as R
+    import os, sys
+    os.system('rm ../Results/Dot/*.*')
+    os.system('rm ../Results/Svg/*.*')
     def write_tree(t, filename):
         "Write the tree as an SVG file."
-        f = open('%s.dot' % filename, 'w')
+        f = open('../Results/Dot/%s.dot' % filename, 'w')
         write_tree_as_dot(t, f)
         f.close()
-        os.system('dot %s.dot -Tsvg -o %s.svg' % (filename, filename))
-        
+        os.system('dot ../Results/Dot/%s.dot -Tsvg -o ../Results/Svg/%s.svg' % (filename, filename))
+
     # test the rbtree
-    R.seed(2)
-    size=50
-    keys = R.randint(-50, 50, size=size)
     t = rbtree()
-    test_tree(t, keys)
-    write_tree(t, 'tree')
-    
+    i = 0
+    while True:
+        i += 1
+        key = input("Enter key : ")
+        test_tree(t, key)
+        write_tree(t, 'tree-'+str(i)+'-inserting-'+str(key))
