@@ -27,13 +27,6 @@ class rbnode(object):
         return str(self.key)
 
 
-
-
-
-
-
-
-
 class rbtree(object):
     """
     A red black tree.
@@ -93,6 +86,81 @@ class rbtree(object):
         while x.right != self.nil:
             x = x.right
         return x
+
+    def delete_key(self, key):
+        "Find the node that contains the key"
+        z = self.search(key)
+        assert (self.nil != z) , "Key to be deleted not found!"
+        if self.root == z and (z.left == self.nil and z.right == self.nil):
+            self._root = self.nil
+        else:
+           self.delete_node(z)
+
+    def delete_node(self, z):
+        "Delete the node z from the tree"
+        if z._left != self.nil:
+            leaf = self.maximum(z._left)
+            z._key,leaf._key = leaf._key,z._key
+        else:
+            leaf = z
+        x = leaf.p
+        if leaf._red == True:
+            if leaf._p._right == leaf:
+                leaf._p._right = self.nil
+            else:
+                leaf._p._left = self.nil
+        else:
+            if leaf._p._right == leaf:
+                leaf._p._right = self.nil
+                self._delete_fixup(x,leaf._p._right)
+            else:
+                leaf._p._left = self.nil
+                self._delete_fixup(x,leaf._p._left)
+
+
+    def _delete_fixup(self, x, r):
+        color = x.red
+        print x.key
+        print r.key
+        if x.right == r:
+            y = x._left
+        else:
+            y = x._right
+        print y.key
+        if y.red == True:
+            if y == x.left:
+                self._right_rotate(x)
+            if y == x.right:
+                self._left_rotate(x)
+            y._red = False
+            x._red = True
+            self._delete_fixup(x,r)
+        elif y.red == False and (y.left.red == True or y.right.red == True):
+            if y == x.left:
+                if y.right == self.nil:
+                    self._right_rotate(y)
+                else:
+                    self._left_rotate(y)
+                    self._right_rotate(x)
+                y._red = color
+                y._right._red = False
+                y._left._red = False
+            if y == x.right:
+                if y.left == self.nil:
+                    self._left_rotate(x)
+                else:
+                    self._right_rotate(y)
+                    self._left_rotate(x)
+                y._red = color
+                y._right._red = False
+                y._left._red = False
+        elif y.red == False and (y.left.red == False and y.right.red == False):
+            y._red == True
+            if x.red == True:
+                x._red = False
+            else:
+                self._delete_fixup(x.p,x)
+        self.root._red = False
 
 
     def insert_key(self, key):
@@ -161,6 +229,7 @@ class rbtree(object):
         "Left rotate x."
         y = x.right
         x._right = y.left
+        print y.key
         if y.left != self.nil:
             y.left._p = x
         y._p = x.p
@@ -268,9 +337,12 @@ def write_tree_as_dot(t, f, show_nil=False):
     print >> f, "}"
 
 
+def delete_tree(t, key):
+    #assert t.check_invariants()
+    t.delete_key(key)
+    #assert t.check_invariants()
 
-
-def test_tree(t, key):
+def insert_tree(t, key):
     "Insert keys one by one checking invariants and membership as we go."
     assert t.check_invariants()
     #for i, key in enumerate(keys):
@@ -299,6 +371,19 @@ if '__main__' == __name__:
     i = 0
     while True:
         i += 1
-        key = input("Enter key : ")
-        test_tree(t, key)
-        write_tree(t, 'tree-'+str(i)+'-inserting-'+str(key))
+        print "MENU : 1.Insert 2.Delete 3.Search \n(Press any other number to Exit!)"
+        choice = input("Enter your choice : ")
+        if choice == 1:
+            key = input("Enter key : ")
+            insert_tree(t, key)
+            write_tree(t, 'tree-'+str(i)+'-inserting-'+str(key))
+        elif choice == 2:
+            key = input("Enter key : ")
+            delete_tree(t, key)
+            write_tree(t, 'tree-'+str(i)+'-deleting-'+str(key))
+        elif choice == 3:
+            key = input("Enter key : ")
+            assert (t.nil != t.search(key)), "Key not found!"
+            print "Key is present in the tree!"
+        else:
+            sys.exit("Exiting!")
