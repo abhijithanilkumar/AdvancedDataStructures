@@ -93,8 +93,14 @@ class rbtree(object):
         assert (self.nil != z) , "Key to be deleted not found!"
         if self.root == z and (z.left == self.nil and z.right == self.nil):
             self._root = self.nil
+        elif z.left == self.nil and z.right != self.nil:
+            if z.red == True:
+                z._right._red = True
+            else:
+                z._right._red = False
+                z._p._right = z._right
         else:
-           self.delete_node(z)
+            self.delete_node(z)
 
     def delete_node(self, z):
         "Delete the node z from the tree"
@@ -116,17 +122,19 @@ class rbtree(object):
             else:
                 leaf._p._left = self.nil
                 self._delete_fixup(x,leaf._p._left)
+        if self.root.left == self.nil and self.root.right != self.nil:
+            self._root._right._red = True
+        if self.root.right == self.nil and self.root.left != self.nil:
+            self._root._left._red = True
 
 
     def _delete_fixup(self, x, r):
+        """Restore Red-Black properties after delete"""
         color = x.red
-        print x.key
-        print r.key
         if x.right == r:
             y = x._left
         else:
             y = x._right
-        print y.key
         if y.red == True:
             if y == x.left:
                 self._right_rotate(x)
@@ -136,30 +144,43 @@ class rbtree(object):
             x._red = True
             self._delete_fixup(x,r)
         elif y.red == False and (y.left.red == True or y.right.red == True):
-            if y == x.left:
-                if y.right == self.nil:
-                    self._right_rotate(y)
+            if y.left == self.nil and y.right == self.nil:
+                y._red = True
+                if x.red == True:
+                    x._red = False
                 else:
-                    self._left_rotate(y)
-                    self._right_rotate(x)
-                y._red = color
-                y._right._red = False
-                y._left._red = False
-            if y == x.right:
-                if y.left == self.nil:
-                    self._left_rotate(x)
+                    self._delete_fixup(x.p,x)
+            elif  y.left.red == False and y.right.red == False:
+                y._red = True
+                if x.red == True:
+                    x._red = False
                 else:
-                    self._right_rotate(y)
-                    self._left_rotate(x)
-                y._red = color
-                y._right._red = False
-                y._left._red = False
-        elif y.red == False and (y.left.red == False and y.right.red == False):
-            y._red == True
-            if x.red == True:
-                x._red = False
+                    self._delete_fixup(x.p,x)
             else:
-                self._delete_fixup(x.p,x)
+                if y == x.left:
+                    if y.right == self.nil:
+                        self._right_rotate(y)
+                        y._red = color
+                        x._red = False
+                        y._left._red = False
+                    else:
+                        self._left_rotate(y)
+                        self._right_rotate(x)
+                        y._right._red = color
+                        y._red = False
+                        x._red = False
+                if y == x.right:
+                    if y.left == self.nil:
+                        self._left_rotate(x)
+                        y._red = color
+                        x._red = False
+                        y._right._red = False
+                    else:
+                        self._right_rotate(y)
+                        self._left_rotate(x)
+                        y._left._red = color
+                        y._red = False
+                        x._red = False
         self.root._red = False
 
 
@@ -229,7 +250,6 @@ class rbtree(object):
         "Left rotate x."
         y = x.right
         x._right = y.left
-        print y.key
         if y.left != self.nil:
             y.left._p = x
         y._p = x.p

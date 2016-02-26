@@ -1,4 +1,4 @@
 // Created by rbtree.write_dot()
 digraph red_black_tree {
-  N140465684075920 [label="4", color="black"];
+  N139890975073616 [label="4", color="black"];
 }
